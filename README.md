@@ -7,9 +7,9 @@ Sensor Oregon Scientific decoder for Raspberry Pi
 Install
 -------
 
-```sudo apt-get install git-core```
-```sudo apt-get update```
-```sudo apt-get upgrade```
+```sudo apt-get install git-core```.
+```sudo apt-get update```.
+```sudo apt-get upgrade```.
 
 git clone git://git.drogon.net/wiringPi
 cd wiringPi
