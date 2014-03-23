@@ -1,10 +1,26 @@
 OregonPi
 ========
 
-Sensor Oregon Scientific decoder for Raspberry Pi
+433 Sensor Oregon Scientific decoder for Raspberry Pi
 
 Code based on disk91 project http://www.disk91.com
 
+Support OregonSensorV2
+----------------------
+
+ - THGR122NX
+ - THN132N
+ - THGRN228NX
+ - WGR9180
+ - STR928N
+ - BTHG968
+
+Hardware Config
+---------------
+
+https://projects.drogon.net/raspberry-pi/wiringpi/pins/
+
+INPUT GPIO 1
 
 Install wiringPi
 ----------------
