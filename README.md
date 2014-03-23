@@ -12,13 +12,10 @@ Install
 ```sudo apt-get update```
 
 ```sudo apt-get upgrade```
-
-
-
-git clone git://git.drogon.net/wiringPi
-cd wiringPi
-git pull origin
-./build
+```git clone git://git.drogon.net/wiringPi```
+```cd wiringPi```
+```git pull origin```
+```./build```
 
 cd ..
 git clone git://github.com/1000io/OregonPi
