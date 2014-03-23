@@ -3,6 +3,8 @@ OregonPi
 
 Sensor Oregon Scientific decoder for Raspberry Pi
 
+Code based on disk91 project http://www.disk91.com
+
 
 Install wiringPi
 ----------------
