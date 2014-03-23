@@ -8,9 +8,7 @@ Install
 -------
 
 ```sudo apt-get install git-core```
-
 ```sudo apt-get update```
-
 ```sudo apt-get upgrade```
 ```git clone git://git.drogon.net/wiringPi```
 ```cd wiringPi```
