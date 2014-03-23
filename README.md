@@ -4,8 +4,8 @@ OregonPi
 Sensor Oregon Scientific decoder for Raspberry Pi
 
 
-Install
--------
+Install wiringPi
+----------------
 
  - sudo apt-get install git-core
  - sudo apt-get update
@@ -14,6 +14,9 @@ Install
  - cd wiringPi
  - git pull origin
  - ./build
+
+Install OregonPi
+----------------
 
  - cd ..
  - git clone git://github.com/1000io/OregonPi
