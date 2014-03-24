@@ -46,4 +46,32 @@ Execute
 
 sudo ./test
 
+Data Support
+------------
+
+Sensor(char * _strval); // construct and decode value
+
+ - bool availableTemp(); // return true if valid && have Temp
+ - bool availableHumidity(); // return true if valid && have Humidity
+ - bool isBatteryLow(); // return true if valid && haveBattery && flag set.
+ - bool hasChannel(); // return true if valid && haveChannel
+ - bool isDecoded(); // return true if valide
+ - bool availableSpeed(); // return true if valid && speed in km/h
+ - bool availableDirection(); // return true if valid && wind direction
+ - bool availableRain(); // return true if valid && rain in mm/h
+ - bool availablePressure(); // return true if valid && pressure in mb
+
+ - double getTemperature(); // return temperature in CÂ°
+ - double getHumidity(); // return humidity in % (base 100)
+ - char * getSensorName(); // return sensor name
+ - double getRain(); // return Rain
+ - double getTrain();
+ - double getDirection(); // return wind direction
+ - double getSpeed(); // return speed in km/h
+ - double getPressure(); // return pressure in mb
+
+ - int getChannel(); // return channel value
+ - int getSensClass(); // return sensor class
+ - int getSensType(); // return sensor type
+
 
