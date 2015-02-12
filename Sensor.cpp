@@ -661,8 +661,8 @@ if ( len == 20 ) {
 channel = pt[4];
 rolling[0]=pt[7]; rolling[1]=pt[6]; rolling[2]='\0';
 battery = pt[9];
-temp[0] = pt[10] ; temp[1] = pt[9] ; temp[2] = pt[8] ; temp[3] ='\0';
-tempS = pt[11];
+temp[0] = pt[10] ; temp[1] = pt[11] ; temp[2] = pt[8] ; temp[3] ='\0';
+tempS = pt[13];
 checksum[0] = pt[15]; checksum[1] = pt[12]; checksum[2] ='\0';
 
 #ifdef SENSORDEBUG
