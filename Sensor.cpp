@@ -11,156 +11,145 @@ Sensor.cpp
 
 * ===================================================
 */
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
 #include <time.h>
+#include <sstream>
+#include <iostream>
 #include "Sensor.h"
 
 //#define SENSORDEBUG // Large debug trace
 //#define SENSORTRACE // Small debug trace to verify error only
 
-char Sensor::_hexDecod[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-
+static char _hexDecod[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+const char OregonSensorV2::_sensorId[] = "OSV2";
 // ——————————————————
 // Construction – init variable then call decode function
-Sensor::Sensor( char * _strval ) {
-
-this->temperature = 0.0;
-this->humidity = 0.0;
-this->channel = -1;
-this->direction = -1;
-this->speed = 0;
-this->battery = false;
-this->haveTemperature = false;
-this->haveHumidity = false;
-this->haveBattery = false;
-this->isValid = false;
-this->haveChannel = false;
-this->haveDirection = false;
-this->haveRain = false;
-this->rain = 0;
-this->haveTrain = false;
-this->train = 0;
-this->haveSpeed = false;
-this->sensorName[0]='\0';
-this->sensorType = -1;
-this->havePressure = false;
-this->pressure = 0;
-
-this->sensorClass = SENS_CLASS_NONE;
-// time(&this->creationTime);
-
+Sensor::Sensor( ) :
+  _temperature(0),
+  _humidity(0),
+  _rain(0),
+  _train(0),
+  _direction(-1),
+  _speed(0),
+  _pressure(0),
+  _channel(-1),
+  _sensorClass(SENS_CLASS_NONE),
+  _sensorType(-1),
+  _availableInfos(0)
+// time(&creationTime);
+{
 }
 
 // —————————————————
 // availablePressure() – return true if valid && have wind speed
-bool Sensor::availablePressure(){
-return (this->isValid && this->havePressure);
+bool Sensor::availablePressure() const {
+return (_availableInfos.isFlagsSet(isValid|havePressure));
 }
 // —————————————————
 // availableSpeed() – return true if valid && have wind speed
-bool Sensor::availableSpeed(){
-return (this->isValid && this->haveSpeed);
+bool Sensor::availableSpeed() const{
+  return (_availableInfos.isFlagsSet(isValid|haveSpeed));
 }
 
 // —————————————————
 // availableDirection() – return true if valid && have wind direction
-bool Sensor::availableDirection(){
-return (this->isValid && this->haveDirection);
+bool Sensor::availableDirection() const{
+  return (_availableInfos.isFlagsSet(isValid|haveDirection));
 }
 // —————————————————
 // availableRain() – return true if valid && have Rain
-bool Sensor::availableRain(){
-return (this->isValid && this->haveRain);
+bool Sensor::availableRain() const{
+  return (_availableInfos.isFlagsSet(isValid|haveRain));
 }
 
 // —————————————————
 // availableTemp() – return true if valid && have Temp
-bool Sensor::availableTemp(){
-return (this->isValid && this->haveTemperature);
+bool Sensor::availableTemp() const{
+  return (_availableInfos.isFlagsSet(isValid|haveTemperature));
 }
 // —————————————————
 // availableHumidity() – return true if valid && have Humidity
-bool Sensor::availableHumidity() {
-return (this->isValid && this->haveHumidity);
+bool Sensor::availableHumidity()  const{
+  return (_availableInfos.isFlagsSet(isValid|haveHumidity));
 }
 // —————————————————
 // isBatteryLow() – return true if valid && haveBattery && flag set
-bool Sensor::isBatteryLow(){
-return (this->isValid && this->haveBattery && this->battery);
+bool Sensor::isBatteryLow() const{
+  return (_availableInfos.isFlagsSet(isValid|haveBattery|battery));
 }
 // —————————————————
 // getPressure() – return Wind speed in Mb
-double Sensor::getPressure(){
-return this->pressure;
+double Sensor::getPressure() const{
+return _pressure;
 }
 
 // —————————————————
 // getSpeed() – return Wind speed in Degre°
-double Sensor::getSpeed(){
-return this->speed;
+double Sensor::getSpeed() const{
+return _speed;
 }
 // —————————————————
 // getDirection() – return Wind direction in Degre°
-double Sensor::getDirection(){
-return this->direction;
+double Sensor::getDirection() const{
+return _direction;
 }
 // —————————————————
 // getRain() – return Rain in mm/h
-double Sensor::getRain(){
-return this->rain;
+double Sensor::getRain() const{
+return _rain;
 }
 // —————————————————
 // getTemperature() – return temperature in C°
-double Sensor::getTemperature(){
-return this->temperature;
+double Sensor::getTemperature() const{
+return _temperature;
 }
 // —————————————————
 // getHumidity() – return humidity in % (base 100)
-double Sensor::getHumidity() {
-return this->humidity;
+double Sensor::getHumidity() const{
+return _humidity;
 }
 
 // —————————————————
 // haveChannel() – return true if valid && haveChannel
-bool Sensor::hasChannel() {
-return (this->isValid && this->haveChannel);
+bool Sensor::hasChannel() const{
+  return (_availableInfos.isFlagsSet(isValid|haveChannel));
 }
 // —————————————————
 // isDecoded() – return true if valid
-bool Sensor::isDecoded() {
-return (this->isValid);
+bool Sensor::isDecoded() const{
+return (_availableInfos.isFlagsSet(isValid));
 }
 
 // —————————————————
 // getChannel() – return channel (1,2,3)
-int Sensor::getChannel() {
-return this->channel;
+int Sensor::getChannel() const {
+return _channel;
 }
 
 // —————————————————
 // getCreationTime() – return object creation time
 //time_t Sensor::getCreationTime() {
-// return this->creationTime;
+// return creationTime;
 // }
 
 // —————————————————
 // getSensClass() – return sensor class
-int Sensor::getSensClass() {
-return this->sensorClass;
+int Sensor::getSensClass() const {
+return _sensorClass;
 }
 
 // —————————————————
 // getSensType() – return sensor type
-int Sensor::getSensType() {
-return this->sensorType;
+int Sensor::getSensType() const {
+return _sensorType;
 }
 
 // —————————————————
 // getSensorName() – return sensor name
-char * Sensor::getSensorName() {
-return this->sensorName;
+const std::string& Sensor::getSensorName() const {
+return _sensorName;
 }
 
 /* Eliminado por error
@@ -179,41 +168,52 @@ return (double)(r/10.0);
 /*Copiado de original*/
 
 // ---------------------------------------------------
-// getIntFromChar() - (-1 if error)
-int Sensor::getIntFromChar(char c) {
-	for ( int i=0 ; i < 16 ; i++ )
-	  if ( _hexDecod[i] == c ) return i;
-	return -1;
+// getIntFromChar() - get int from hex char(-1 if error)
+int Sensor::getIntFromChar(char c) const {
+  std::stringstream ss;
+  ss << std::hex << c;
+  
+  int i;
+  ss >> i;
+  
+  if(!ss.fail())
+    return i;
+  
+  return -1;
 }
 
 // ---------------------------------------------------
 // getIntFromString() - get an unsigned int value from
 //   the given string. -1 if error
-int Sensor::getIntFromString(char * s) {
-	int r = 0;
-	while ( *s != '\0' ) {
-	    r *= 16;
-		int t = getIntFromChar(*s);
-		if ( t == -1 ) return -1;
-		r += t;
-		s++;
-	}
-	return r;
+int Sensor::getIntFromString(char * s) const {
+  std::stringstream ss;
+  ss << std::hex << s;
+
+  int i;
+  ss >> i;
+
+  if(!ss.fail())
+    return i;
+  
+  return -1;
 }
 
 // --------------------------------------------------
 // getDoubleFromString() - get double value related to
 //                         BCD encoded string XXX = XX.X
-double Sensor::getDoubleFromString(char * s) {
-	int r = 0;
-	while ( *s != '\0' ) {
-	    r *= 10;
-		int t = getIntFromChar(*s);
-		if ( t == -1 || t >= 10 ) return -1;
-		r += t;
-		s++;
-	}
-	return (double)( r / 10.0 );
+double Sensor::getDoubleFromString(char * s) const {
+  std::stringstream ss;
+  ss << std::dec << s;
+
+  int r = -1;
+  
+  ss >> r;
+  
+  if(!ss.fail())
+    return (r / 10.0);
+
+  return -1.;
+
 }
 
 /*Fin copiado de original*/
@@ -224,28 +224,33 @@ double Sensor::getDoubleFromString(char * s) {
 // Build the right sensor type by identifying the
 // header code
 Sensor * Sensor::getRightSensor(char * s) {
-int len = strlen(s);
+  int len = strlen(s);
 if (len > 4) {
 #ifdef SENSORDEBUG
 printf("Sensor::getRightSensor – create of (%s)\n",s);
 #endif
-
-if (s[0] == 'O' && s[1] == 'S' && s[2] == 'V' && s[3] == '2') {
+ 
+ if(strncmp(s, OregonSensorV2::_sensorId, strlen(OregonSensorV2::_sensorId)) == 0) {
 #ifdef SENSORDEBUG
 printf("Sensor::getRightSensor – create OregonSensorV2\n");
 #endif
-OregonSensorV2 * r = new OregonSensorV2(s);
-return (Sensor *) r;
-}
-}
+return new OregonSensorV2(s);
+ } else {
+   std::cout << "[Sensor::getRightSensor] right length but not OSV2:" << s << std::endl;
+ }
+ 
+ } else {
+  std::cout << "[Sensor::getRightSensor] dont know how to decode: " << s << std::endl;
+ }
+ 
 return NULL;
 }
 
 // ==================================================================
 
-OregonSensorV2::OregonSensorV2(char * _strval) : Sensor(_strval) {
-this->sensorClass = SENS_CLASS_OS;
-this->isValid = this->decode(_strval);
+OregonSensorV2::OregonSensorV2(char * _strval) : Sensor( ) {
+  _sensorClass = SENS_CLASS_OS;
+  _availableInfos.setFlags(decode(_strval));
 }
 
 // —————————————————————————————
@@ -282,87 +287,46 @@ printf("OSV2 – decode : id(%s)(0x%4X)\n",sensorId, isensorId);
 switch (isensorId) {
 
 case 0x5D60:
-this->sensorType=0x5D60;
-this->sensorName[0] ='B';
-this->sensorName[1] ='T';
-this->sensorName[2] ='H';
-this->sensorName[3] ='G';
-this->sensorName[4] ='9';
-this->sensorName[5] ='6';
-this->sensorName[6] ='8';
-this->sensorName[7] ='\0';
+  _sensorType=0x5D60;
+  _sensorName = "BTHG968";
 return decode_BTHG968(pt); break;
 
 case 0x1D20:
-this->sensorType=0x1D20;
-this->sensorName[0] ='T';
-this->sensorName[1] ='H';
-this->sensorName[2] ='G';
-this->sensorName[3] ='R';
-this->sensorName[4] ='1';
-this->sensorName[5] ='2';
-this->sensorName[6] ='2';
-this->sensorName[7] ='N';
-this->sensorName[8] ='X';
-this->sensorName[9] ='\0';
+_sensorType=0x1D20;
+ _sensorName = "THGR122NX"; 
 return decode_THGR122NX(pt); break;
 
 case 0x1D30:
-this->sensorType=0x1D30;
-this->sensorName[0] ='T';
-this->sensorName[1] ='H';
-this->sensorName[2] ='G';
-this->sensorName[3] ='R';
-this->sensorName[4] ='N';
-this->sensorName[5] ='2';
-this->sensorName[6] ='2';
-this->sensorName[7] ='8';
-this->sensorName[8] ='N';
-this->sensorName[9] ='X';
-this->sensorName[10] ='\0';
-return decode_THGRN228NX(pt); break;
+  _sensorType=0x1D30;
+  _sensorName="THGRN228NX";
+    return decode_THGRN228NX(pt); break;
 
 case 0xEC40:
-this->sensorType=0xEC40;
-this->sensorName[0] ='T';
-this->sensorName[1] ='H';
-this->sensorName[2] ='N';
-this->sensorName[3] ='1';
-this->sensorName[4] ='3';
-this->sensorName[5] ='2';
-this->sensorName[6] ='N';
-this->sensorName[7] ='\0';
-return decode_THN132N(pt); break;
+_sensorType=0xEC40;
+ _sensorName = "THN132N";
+ return decode_THN132N(pt); break;
 
 case 0x3D00:
-this->sensorType=0x3D00;
-this->sensorName[0] ='W';
-this->sensorName[1] ='G';
-this->sensorName[2] ='R';
-this->sensorName[3] ='9';
-this->sensorName[4] ='1';
-this->sensorName[5] ='8';
-this->sensorName[6] ='\0';
+_sensorType=0x3D00;
+ _sensorName = "WGR918";
 return decode_WGR918(pt); break;
 
 case 0x2D10:
-this->sensorType=0x2D10;
-this->sensorName[0] ='R';
-this->sensorName[1] ='G';
-this->sensorName[2] ='R';
-this->sensorName[3] ='9';
-this->sensorName[4] ='1';
-this->sensorName[5] ='8';
-this->sensorName[6] ='\0';
+_sensorType=0x2D10;
+ _sensorName = "RGR918";
 return decode_RGR918(pt); break;
 
 default:
-return false;
-
+  std::cout << "Unknown sensor id: " << std::hex << isensorId << std::endl;
+  return false;
+  break;
 }
-
-}
-return false;
+ 
+ }
+ else {
+  std::cout << "OSV2 - decode: bad length" << std::endl; 
+ }
+ return false;
 }
 
 // —————————————————————————————
@@ -406,12 +370,12 @@ printf("OSV2 – decode : id(0x%04X) temp(%f) sign(%d) humid(%d) pressure(%d) ck
 // if ( validate(pt,16,icrc,ichecksum) == true ) {
 
 // now we can decode the important flag and fill the object
-this->haveTemperature = true;
-this->temperature = (itempS == 0)?dtemp:-dtemp;
-this->haveHumidity = true;
-this->humidity = dhumid;
-this->havePressure = true;
-this->pressure = (856 + ipressure);
+ _availableInfos.setFlags(haveTemperature);
+_temperature = (itempS == 0)?dtemp:-dtemp;
+ _availableInfos.setFlags(haveHumidity);
+_humidity = dhumid;
+ _availableInfos.setFlags(havePressure);
+_pressure = (856 + ipressure);
 
 return true;
 // } else return false;
@@ -455,8 +419,8 @@ printf("OSV2 – decode : id(0x%04X) rain(%f) cksum(0x%02X) crc(0x%02X) \n", 0x2
 // if ( validate(pt,16,icrc,ichecksum) == true ) {
 
 // now we can decode the important flag and fill the object
-this->haveRain = true;
-this->rain = (10 * irain);
+ _availableInfos.setFlags(haveRain);
+_rain = (10 * irain);
 return true;
 
 // } else return false;
@@ -502,10 +466,10 @@ printf("OSV2 – decode : id(0x%04X) dir(%f) speed(%f) cksum(0x%02X) crc(0x%02X)
 // if ( validate(pt,16,icrc,ichecksum) == true ) {
 
 // now we can decode the important flag and fill the object
-this->haveDirection = true;
-this->direction = (10 * idir);
-this->haveSpeed = true;
-this->speed = (0.1 * ispeed)* 3.6;
+ _availableInfos.setFlags(haveDirection);
+_direction = (10 * idir);
+ _availableInfos.setFlags(haveSpeed);
+_speed = (0.1 * ispeed)* 3.6;
 return true;
 // } else return false;
 
@@ -562,14 +526,16 @@ printf("OSV2 – decode : id(0x%04X) ch(%d) bat(%d) temp(%f) sign(%d) humid(%f) 
 if ( validate(pt,16,icrc,ichecksum) == true ) {
 
 // now we can decode the important flag and fill the object
-this->haveChannel = true;
-this->channel = (ichannel != 4)?ichannel:3;
-this->haveBattery = true;
-this->battery = (ibattery & 0x4);
-this->haveTemperature = true;
-this->temperature = (itempS == 0)?dtemp:-dtemp;
-this->haveHumidity = true;
-this->humidity = dhumid;
+  _availableInfos.setFlags(haveChannel);
+_channel = (ichannel != 4)?ichannel:3;
+ _availableInfos.setFlags(haveBattery);
+ if(ibattery & 0x4) {
+   _availableInfos.setFlags(battery);
+ }
+ _availableInfos.setFlags(haveTemperature);
+_temperature = (itempS == 0)?dtemp:-dtemp;
+ _availableInfos.setFlags(haveHumidity);
+_humidity = dhumid;
 return true;
 } else return false;
 
@@ -626,14 +592,16 @@ printf("OSV2 – decode : id(0x%04X) ch(%d) bat(%d) temp(%f) sign(%d) humid(%f) 
 if ( validate(pt,16,icrc,ichecksum) == true ) {
 
 // now we can decode the important flag and fill the object
-this->haveChannel = true;
-this->channel = (ichannel != 4)?ichannel:3;
-this->haveBattery = true;
-this->battery = (ibattery & 0x4);
-this->haveTemperature = true;
-this->temperature = (itempS == 0)?dtemp:-dtemp;
-this->haveHumidity = true;
-this->humidity = dhumid;
+  _availableInfos.setFlags(haveChannel);
+_channel = (ichannel != 4)?ichannel:3;
+ _availableInfos.setFlags(haveBattery);
+ if(ibattery & 0x4) {
+   _availableInfos.setFlags(battery);
+ }
+ _availableInfos.setFlags(haveTemperature);
+_temperature = (itempS == 0)?dtemp:-dtemp;
+ _availableInfos.setFlags(haveHumidity);
+_humidity = dhumid;
 return true;
 } else return false;
 
@@ -656,7 +624,7 @@ char tempS; int itempS; // Sign 0 = positif
 char checksum[3]; int ichecksum;
 int len = strlen(pt);
 
-if ( len == 20 ) {
+if ( len == 16 ) {
 
 channel = pt[4];
 rolling[0]=pt[7]; rolling[1]=pt[6]; rolling[2]='\0';
@@ -688,13 +656,15 @@ printf("OSV2 - decode : id(0x%04X) ch(%d) bat(%d) temp(%f) sign(%d) cksum(0x%02X
 #endif
 
 if ( _sum == ichecksum ){
-haveChannel = true;
-this->channel = (ichannel != 4)?ichannel:3;
-this->haveBattery = true;
-this->battery = (ibattery != 0);
-this->haveTemperature = true;
-this->temperature = (itempS == 0)?dtemp:-dtemp;
-this->haveHumidity = false;
+  _availableInfos.setFlags(haveChannel);
+_channel = (ichannel != 4)?ichannel:3;
+ _availableInfos.setFlags(haveBattery);
+ if(ibattery != 0) {
+   _availableInfos.setFlags(battery);
+ }
+ _availableInfos.setFlags(haveTemperature);
+ _temperature = (itempS == 0)?dtemp:-dtemp;
+ _availableInfos.setFlags(haveHumidity);
 return true;
 } else return false;
 

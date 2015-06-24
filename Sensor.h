@@ -1,12 +1,12 @@
 /* ===================================================
-* Sensor.h
-* ====================================================
-* Sensor decoding from 433 Message
-*
-* Created on: 17 sept. 2013
-* Author: disk91 / (c) http://www.disk91.com
-* ===================================================
-*/
+ * Sensor.h
+ * ====================================================
+ * Sensor decoding from 433 Message
+ *
+ * Created on: 17 sept. 2013
+ * Author: disk91 / (c) http://www.disk91.com
+ * ===================================================
+ */
 
 #ifndef SENSOR_H_
 #define SENSOR_H_
@@ -25,91 +25,114 @@
 #define SENS_TYP_OS_2D10 0x2D10 // STR928N
 #define SENS_TYP_OS_5D60 0x5D60 // BTHG968
 
+#include <string>
+#include "Flag.h"
+
 class Sensor {
 
-protected:
-double temperature;
-double humidity;
-double rain;
-double train;
-double direction;
-double speed;
-double pressure;
+ protected:
+    enum {
+    battery		= 1 << 0,
+    haveTemperature	= 1 << 1,
+    haveHumidity	= 1 << 2,
+    haveBattery		= 1 << 3,
+    haveChannel		= 1 << 4,
+    haveDirection	= 1 << 5,
+    haveSpeed		= 1 << 6,
+    haveRain		= 1 << 7,
+    haveTrain		= 1 << 8,
+    havePressure	= 1 << 9,
+    isValid		= 1 << 10
+  } eInfo;
 
-int channel;
-bool battery; // true if flag set (battery low)
+  double _temperature;
+  double _humidity;
+  double _rain;
+  double _train;
+  double _direction;
+  double _speed;
+  double _pressure;
 
-bool haveTemperature; // true when temp capaciy decoded
-bool haveHumidity; // true when hum capcity decoded
-bool haveBattery; // true when battery flag decoded
-bool haveChannel; // true when channel is present
-bool isValid; // true when chaecksum is valid and other value valid
-bool haveDirection; // true when wind direction decodedd
-bool haveSpeed; // true when wind wpeed decoded
-bool haveRain; // true when rain decoded
-bool haveTrain;
-bool havePressure; // true when pressure decoded
+  int _channel;
 
-int sensorClass; // marque du sensor cf #define
-int sensorType; // model of sensor
-char sensorName[16];
+  /*
+  bool battery; // true if flag set (battery low)
+  bool haveTemperature; // true when temp capaciy decoded
+  bool haveHumidity; // true when hum capcity decoded
+  bool haveBattery; // true when battery flag decoded
+  bool haveChannel; // true when channel is present
+  bool haveDirection; // true when wind direction decodedd
+  bool haveSpeed; // true when wind wpeed decoded
+  bool haveRain; // true when rain decoded
+  bool haveTrain;
+  bool havePressure; // true when pressure decoded
 
-// time_t creationTime; // objectCreation time
+  bool isValid; // true when chaecksum is valid and other value valid
+  */
+  
+  int _sensorClass; // marque du sensor cf #define
+  int _sensorType; // model of sensor
+  std::string _sensorName;
 
-static char _hexDecod[];
-virtual bool decode ( char * _str) = 0; // decode the string and set the variable
+  //store up to 16 bits
+  Flags<int16_t> _availableInfos;
+  
+  // time_t creationTime; // objectCreation time
 
-protected:
-int getIntFromChar(char c); // transform a Hex value in char into a number
-int getIntFromString(char *); // transform a Hex value in String into a number
-double getDoubleFromString(char *); // transform a BCD string into a double
+  virtual bool decode ( char * _str) = 0; // decode the string and set the variable
 
-public:
+ protected:
+  int getIntFromChar(char c) const ; // transform a Hex value in char into a number
+  int getIntFromString(char *) const ; // transform a Hex value in String into a number
+  double getDoubleFromString(char *) const ; // transform a BCD string into a double
 
-Sensor(char * _strval); // construct and decode value
+ public:
 
-bool availableTemp(); // return true if valid && have Temp
-bool availableHumidity(); // return true if valid && have Humidity
-bool isBatteryLow(); // return true if valid && haveBattery && flag set.
-bool hasChannel(); // return true if valid && haveChannel
-bool isDecoded(); // return true if valide
-bool availableSpeed(); // return true if valid && speed in km/h
-bool availableDirection(); // return true if valid && wind direction
-bool availableRain(); // return true if valid && rain in mm/h
-bool availablePressure(); // return true if valid && pressure in mb
+  Sensor(); // construct and decode value
 
-double getTemperature(); // return temperature in CÂ°
-double getHumidity(); // return humidity in % (base 100)
-char * getSensorName(); // return sensor name
-double getRain(); // return Rain
-double getTrain();
-double getDirection(); // return wind direction
-double getSpeed(); // return speed in km/h
-double getPressure(); // return pressure in mb
+  bool availableTemp() const; // return true if valid && have Temp
+  bool availableHumidity() const; // return true if valid && have Humidity
+  bool isBatteryLow() const; // return true if valid && haveBattery && flag set.
+  bool hasChannel() const; // return true if valid && haveChannel
+  bool isDecoded() const; // return true if valide
+  bool availableSpeed() const; // return true if valid && speed in km/h
+  bool availableDirection() const; // return true if valid && wind direction
+  bool availableRain() const; // return true if valid && rain in mm/h
+  bool availablePressure() const; // return true if valid && pressure in mb
 
-int getChannel(); // return channel value
-int getSensClass(); // return sensor class
-int getSensType(); // return sensor type
+  double getTemperature() const; // return temperature in CÂ°
+  double getHumidity() const; // return humidity in % (base 100)
+  const std::string& getSensorName() const; // return sensor name
+  double getRain() const; // return Rain
+  double getTrain() const;
+  double getDirection() const; // return wind direction
+  double getSpeed() const; // return speed in km/h
+  double getPressure() const; // return pressure in mb
 
-//time_t getCreationTime(); // return object creation time
+  int getChannel() const; // return channel value
+  int getSensClass() const; // return sensor class
+  int getSensType() const; // return sensor type
 
-static Sensor * getRightSensor(char * s); // wrapper for child class
+  //time_t getCreationTime(); // return object creation time
+
+  static Sensor * getRightSensor(char * s); // wrapper for child class
 
 };
 
 class OregonSensorV2 : public Sensor {
-public :
-OregonSensorV2(char * _strval);
+ public :
+  OregonSensorV2(char * _strval);
+  static const char _sensorId[];
+					  
+ private:
+  bool decode( char * _str ); // wrapper to right decode method
 
-private:
-bool decode( char * _str ); // wrapper to right decode method
-
-bool decode_BTHG968(char *pt); // decode sensor information
-bool decode_RGR918(char *pt); // decode sensor information
-bool decode_THGR122NX(char * pt); // decode sensor informations
-bool decode_THN132N(char * pt); // decode sensor informations
-bool decode_THGRN228NX(char * pt); // decode sensor informations
-bool decode_WGR918(char * pt); // decode sensor informations
-bool validate(char * _str, int _len, int _CRC, int _SUM); // Verify CRC & CKSUM
+  bool decode_BTHG968(char *pt); // decode sensor information
+  bool decode_RGR918(char *pt); // decode sensor information
+  bool decode_THGR122NX(char * pt); // decode sensor informations
+  bool decode_THN132N(char * pt); // decode sensor informations
+  bool decode_THGRN228NX(char * pt); // decode sensor informations
+  bool decode_WGR918(char * pt); // decode sensor informations
+  bool validate(char * _str, int _len, int _CRC, int _SUM); // Verify CRC & CKSUM
 };
 #endif /* SENSOR_H_ */
