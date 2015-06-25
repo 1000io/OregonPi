@@ -75,6 +75,8 @@ class Sensor {
 
   Sensor(); // construct and decode value
 
+  virtual ~Sensor() { };
+  
   bool availableTemp() const; // return true if valid && have Temp
   bool availableHumidity() const; // return true if valid && have Humidity
   bool isBatteryLow() const; // return true if valid && haveBattery && flag set.
@@ -118,6 +120,7 @@ class OregonSensorV2 : public Sensor {
   bool decode_THN132N(char * pt); // decode sensor informations
   bool decode_THGRN228NX(char * pt); // decode sensor informations
   bool decode_WGR918(char * pt); // decode sensor informations
+  bool decode_THGR810(char* pt); // decode sensor informations
   bool validate(char * _str, int _len, int _CRC, int _SUM); // Verify CRC & CKSUM
 };
 #endif /* SENSOR_H_ */

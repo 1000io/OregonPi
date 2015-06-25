@@ -300,6 +300,11 @@ _sensorType=0x2D10;
  _sensorName = "RGR918";
 return decode_RGR918(pt); break;
 
+ case 0xA824:
+   _sensorType=0xA824;
+   _sensorName = "THGR810";
+   return decode_THGR810(pt); break;
+ 
 default:
   std::cout << "Unknown sensor id: " << std::hex << isensorId << std::endl;
   return false;
@@ -325,7 +330,8 @@ char tempS; int itempS; // Sign 0 = positif
 char humid[4]; double dhumid; // Humid in BCD
 char pressure[3]; double ipressure;
 
-char crc[3]; int icrc;
+char crc[3];
+int icrc;
 int len = strlen(pt);
 
 if ( len == 20 ) {
@@ -379,7 +385,7 @@ bool OregonSensorV2::decode_RGR918(char * pt) {
 char rain[4]; double irain; // Temp
 char checksum[19]; int ichecksum;
 char crc[3]; int icrc;
-int len = strlen(pt);
+ int len = strlen(pt);
 
 if ( len == 20 ) {
 //channel = pt[4];
@@ -424,7 +430,6 @@ char dir[4]; double idir; // direction en degres
 char speed[4]; double ispeed; // vitesse en km/h
 char checksum[3]; int ichecksum;
 char crc[3]; int icrc;
-
 int len = strlen(pt);
 
 if ( len == 20 ) {
@@ -654,6 +659,75 @@ return true;
 
 }
 return false;
+}
+
+// —————————————————————————————
+// Decode OregonScientific V2 protocol for specific
+// Oregon Devices
+// – THGR810 : Temp + Humidity
+// ——————————————————————————————
+bool OregonSensorV2::decode_THGR810(char * pt) {
+
+  char channel; int ichannel; // values 1,2,4
+  char rolling[3]; int irolling;
+  char battery; int ibattery; // value & 0x4
+  char temp[4]; double dtemp; // Temp in BCD
+  char tempS; int itempS; // Sign 0 = positif
+  char humid[4]; double dhumid; // Humid in BCD
+  char checksum[3]; int ichecksum;
+  char crc[3]; int icrc;
+  int len = strlen(pt);
+
+  if ( len == 20 ) {
+    channel = pt[4];
+    rolling[0]=pt[7]; rolling[1]=pt[6]; rolling[2]='\0';
+    battery = pt[9];
+    temp[0] = pt[10] ; temp[1] = pt[11] ; temp[2] = pt[8] ; temp[3] ='\0';
+    tempS = pt[13];
+    humid[0] = pt[15] ; humid[1] = pt[12]; humid[2] = '0' ; humid[3] ='\0';
+    checksum[0] = pt[16]; checksum[1] = pt[17]; checksum[2] ='\0';
+    crc[0] = pt[18] ; crc[1] = pt[19] ; crc[2] ='\0';
+
+#ifdef SENSORDEBUG
+    printf("OSV3 – decode : id(%s) ch(%c) bat(%c) temp(%s) sign(%c) humid(%s) cksum(%s) crc(%s)\n","A824",channel,battery,temp,tempS,humid, checksum, crc);
+#endif
+
+    // Conversion to int value
+    ichannel = getIntFromChar(channel);
+    irolling = getIntFromString(rolling);
+    ibattery = getIntFromChar(battery);
+    itempS = getIntFromChar(tempS) & 0x08;
+    ichecksum = getIntFromString(checksum);
+    icrc = getIntFromString(crc);
+    dtemp = getDoubleFromString(temp);
+    dhumid = getDoubleFromString(humid);
+
+#ifdef SENSORDEBUG
+    printf("OSV3 – decode : id(0x%04X) ch(%d) bat(%d) temp(%f) sign(%d) humid(%f) cksum(0x%02X) crc(0x%02X)\n",0x1D30,ichannel,ibattery,dtemp,itempS,dhumid, ichecksum, icrc);
+#endif
+
+    // Check SUM & CRC
+    if ( validate(pt,16,icrc,ichecksum) == true ) {
+
+      // now we can decode the important flag and fill the object
+      _availableInfos.setFlags(haveChannel);
+      _channel = ichannel;
+      _availableInfos.setFlags(haveBattery);
+  
+      if(ibattery & 0x4) {
+	_availableInfos.setFlags(battery);
+      }
+      _availableInfos.setFlags(haveTemperature);
+      _temperature = (itempS == 0)?dtemp:-dtemp;
+      _availableInfos.setFlags(haveHumidity);
+      _humidity = dhumid;
+      return true;
+    }
+    else
+      return false;
+
+  }
+  return false;
 }
 
 // —————————————————–
