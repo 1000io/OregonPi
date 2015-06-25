@@ -55,21 +55,6 @@ class Sensor {
 
   int _channel;
 
-  /*
-  bool battery; // true if flag set (battery low)
-  bool haveTemperature; // true when temp capaciy decoded
-  bool haveHumidity; // true when hum capcity decoded
-  bool haveBattery; // true when battery flag decoded
-  bool haveChannel; // true when channel is present
-  bool haveDirection; // true when wind direction decodedd
-  bool haveSpeed; // true when wind wpeed decoded
-  bool haveRain; // true when rain decoded
-  bool haveTrain;
-  bool havePressure; // true when pressure decoded
-
-  bool isValid; // true when chaecksum is valid and other value valid
-  */
-  
   int _sensorClass; // marque du sensor cf #define
   int _sensorType; // model of sensor
   std::string _sensorName;

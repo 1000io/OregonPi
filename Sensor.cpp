@@ -22,7 +22,6 @@ Sensor.cpp
 //#define SENSORDEBUG // Large debug trace
 //#define SENSORTRACE // Small debug trace to verify error only
 
-static char _hexDecod[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 const char OregonSensorV2::_sensorId[] = "OSV2";
 // ——————————————————
 // Construction – init variable then call decode function
@@ -151,21 +150,6 @@ return _sensorType;
 const std::string& Sensor::getSensorName() const {
 return _sensorName;
 }
-
-/* Eliminado por error
-// —————————————————
-// getIntFromChar() – (-1 if error)
-int Sensor::getIntFromChar(char c) {
-for (int i=0;i = 10) return -1;
-r+=t;
-s++;
-}
-return (double)(r/10.0);
-}
-*/
-
-
-/*Copiado de original*/
 
 // ---------------------------------------------------
 // getIntFromChar() - get int from hex char(-1 if error)
