@@ -148,7 +148,9 @@
      */
     void DecodeOOK::sprint(const char * s, char * d) {
     	char v[] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+#ifdef TRACE_RCOOK
     	char * _d = d;
+#endif
         byte pos;
         const byte* data = this->getData(pos);
         sprintf(d,"%s ",s);
@@ -157,7 +159,7 @@
             sprintf(d,"%c",v[ data[i] >> 4 ]);d++;
             sprintf(d,"%c",v[ data[i] & 0x0F]);d++;
         }
-        sprintf(d,'\0');
+	*d='\0';
 
 #ifdef TRACE_RCOOK
         std::cout << " * DecodeOOK::sprint() - received [" << _d << "]" << std::endl;
@@ -689,7 +691,7 @@
 	      unsigned long delay = this->timings[0] / 31;
 	      unsigned long delayTolerance = delay * this->nReceiveTolerance * 0.01;
 
-	      for (int i = 1; i<_changeCount ; i=i+2) {
+	      for (unsigned int i = 1; i<_changeCount ; i=i+2) {
 
 	          if (    this->timings[i] > delay-delayTolerance
 	        	   && this->timings[i] < delay+delayTolerance
@@ -719,7 +721,7 @@
 	      unsigned long delay = this->timings[0] / 10;
 	      unsigned long delayTolerance = delay * this->nReceiveTolerance * 0.01;
 
-	      for (int i = 1; i<_changeCount ; i=i+2) {
+	      for (unsigned int i = 1; i<_changeCount ; i=i+2) {
 
 	          if (   this->timings[i] > delay-delayTolerance
 	        	  && this->timings[i] < delay+delayTolerance
