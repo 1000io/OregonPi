@@ -1,3 +1,5 @@
+CXXFLAGS += -O2 -Wall -g -pthread
+
 all: test
 
 test: RCSwitch.o RcOok.o Sensor.o test.o

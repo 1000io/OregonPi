@@ -140,9 +140,7 @@ void RCSwitch::OokResetAvailable() {
 void RCSwitch::handleInterrupt() {
 
   static unsigned int duration;
-  static unsigned int changeCount;
   static unsigned long lastTime;
-  static unsigned int repeatCount;
 
   long time = micros();
   duration = time - lastTime;
@@ -170,7 +168,7 @@ void RCSwitch::handleInterrupt() {
 // Transmit pulse
 void RCSwitch::transmit(int nHighPulses, int nLowPulses) {
     boolean disabled_Receive = false;
-    int nReceiverInterrupt_backup = nReceiverInterrupt;
+    //XXX renzo38 int nReceiverInterrupt_backup = nReceiverInterrupt;
     if (this->nTransmitterPin != -1) {
         if (this->nReceiverInterrupt != -1) {
 // XXX voir si on active ou non la reception lors de la tansmission ???
