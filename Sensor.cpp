@@ -23,6 +23,7 @@ Sensor.cpp
 //#define SENSORTRACE // Small debug trace to verify error only
 
 const char OregonSensorV2::_sensorId[] = "OSV2";
+const char OregonSensorV3::_sensorId[] = "OSV3";
 // ——————————————————
 // Construction – init variable then call decode function
 Sensor::Sensor( ) :
@@ -218,11 +219,18 @@ printf("Sensor::getRightSensor – create of (%s)\n",s);
 #ifdef SENSORDEBUG
 printf("Sensor::getRightSensor – create OregonSensorV2\n");
 #endif
-return new OregonSensorV2(s);
- } else {
-   std::cout << "[Sensor::getRightSensor] right length but not OSV2:" << s << std::endl;
+ return new OregonSensorV2(s);
+ } else if ( strncmp(s, OregonSensorV2::_sensorId, strlen(OregonSensorV3::_sensorId)) == 0) {
+#ifdef SENSORDEBUG
+printf("Sensor::getRightSensor – create OregonSensorV3\n");
+#endif
+ return new OregonSensorV3(s);
  }
- 
+#ifdef SENSORDEBUG
+ else {
+   std::cout << "[Sensor::getRightSensor] right length but unknown signature:" << s << std::endl;
+ }
+#endif 
  } else {
   std::cout << "[Sensor::getRightSensor] dont know how to decode: " << s << std::endl;
  }
@@ -299,11 +307,6 @@ case 0x2D10:
 _sensorType=0x2D10;
  _sensorName = "RGR918";
 return decode_RGR918(pt); break;
-
- case 0xA824:
-   _sensorType=0xA824;
-   _sensorName = "THGR810";
-   return decode_THGR810(pt); break;
  
 default:
   std::cout << "Unknown sensor id: " << std::hex << isensorId << std::endl;
@@ -661,12 +664,106 @@ return true;
 return false;
 }
 
+// —————————————————–
+// Validate CRC and Checksum value from the signal
+// Starts at the Sync header digit
+// return true if both are valid
+bool OregonSensorV2::validate(char * _str, int _len, int _CRC, int _SUM) {
+
+int i,j,c,CRC,SUM;
+CRC =0x43;
+int CCIT_POLY = 0x07;
+SUM = 0x00;
+
+// swap each 2 digit
+char __str[100];
+for (j=0 ; j < _len ; j+=2){
+__str[j] = _str[j+1];
+__str[j+1] = _str[j];
+}
+__str[_len]='\0'; // recopie de
+
+for (j=1; j< _len; j++)
+{
+c = getIntFromChar(__str[j]);
+SUM += c;
+CRC ^= c;
+
+// Because we have to skip the rolling value in the CRC computation
+if ( j != 6 && j != 7 ) {
+for(i = 0; i < 4; i++) {
+if( (CRC & 0x80) != 0 )
+CRC = ( (CRC << 1) ^ CCIT_POLY ) & 0xFF;
+else
+CRC = (CRC << 1 ) & 0xFF;
+}
+}
+}
+
+// CRC is 8b but the len is quartet based and we start are digit 1
+if ( ! (_len & 1) ) {
+for(i = 0; i<4; i++) {
+if( (CRC & 0x80) != 0 )
+CRC = ( (CRC << 1) ^ CCIT_POLY ) & 0xFF;
+else
+CRC = (CRC << 1 ) & 0xFF;
+}
+}
+
+#ifdef SENSORDEBUG
+printf("Validate OOK – SUM : 0x%02X(0x%02X) CRC : 0x%02X(0x%02X)\n",SUM,_SUM,CRC,_CRC);
+#endif
+// Do not check crc anymore as depend on sensor it is not working as expected
+if ( SUM == _SUM /* && CRC == _CRC */ ) return true;
+else {
+
+#ifdef SENSORTRACE
+printf("OSV2 – validate err (%s) SUM : 0x%02X(0x%02X) CRC : 0x%02X(0x%02X)\n",_str,SUM,_SUM,CRC,_CRC);
+#endif
+}
+return false;
+}
+
+OregonSensorV3::OregonSensorV3(char * _strval) : Sensor( ) {
+  _sensorClass = SENS_CLASS_OS;
+  _availableInfos.setFlags(decode(_strval));
+}
+
+bool OregonSensorV3::decode(char * _str) {
+  char * pt = & _str[5];
+  int len = strlen(_str);
+  char sensorId[5]; int isensorId;
+  
+  // Proceed the right sensor
+  if (len > 11) {
+    sensorId[0] = pt[0];sensorId[1] = pt[3];sensorId[2] = pt[2];sensorId[3] = pt[5];sensorId[4] ='\0';
+    isensorId = getIntFromString(sensorId);
+#ifdef SENSORDEBUG
+    printf("OSV3 – decode : id(%s)(0x%4X)\n",sensorId, isensorId);
+#endif
+    
+    switch (isensorId) {
+    case 0xA824:
+      _sensorType=0xA824;
+      _sensorName = "THGR810";
+      return decode_THGR810(pt); break;
+    default:
+      std::cout << "Unknown sensor id: " << std::hex << isensorId << std::endl;
+      return false;
+      break;
+    }
+  }
+  else {
+    std::cout << "OSV3 - decode: bad length" << std::endl; 
+  }
+  return false;
+}
 // —————————————————————————————
-// Decode OregonScientific V2 protocol for specific
+// Decode OregonScientific V3 protocol for specific
 // Oregon Devices
 // – THGR810 : Temp + Humidity
 // ——————————————————————————————
-bool OregonSensorV2::decode_THGR810(char * pt) {
+bool OregonSensorV3::decode_THGR810(char * pt) {
 
   char channel; int ichannel; // values 1,2,4
   char rolling[3]; int irolling;
@@ -734,38 +831,37 @@ bool OregonSensorV2::decode_THGR810(char * pt) {
 // Validate CRC and Checksum value from the signal
 // Starts at the Sync header digit
 // return true if both are valid
-bool OregonSensorV2::validate(char * _str, int _len, int _CRC, int _SUM) {
-
-int i,j,c,CRC,SUM;
-CRC =0x43;
-int CCIT_POLY = 0x07;
-SUM = 0x00;
-
-// swap each 2 digit
-char __str[100];
-for (j=0 ; j < _len ; j+=2){
-__str[j] = _str[j+1];
-__str[j+1] = _str[j];
-}
-__str[_len]='\0'; // recopie de
-
-for (j=1; j< _len; j++)
-{
-c = getIntFromChar(__str[j]);
-SUM += c;
-CRC ^= c;
-
-// Because we have to skip the rolling value in the CRC computation
-if ( j != 6 && j != 7 ) {
-for(i = 0; i < 4; i++) {
-if( (CRC & 0x80) != 0 )
-CRC = ( (CRC << 1) ^ CCIT_POLY ) & 0xFF;
-else
-CRC = (CRC << 1 ) & 0xFF;
-}
-}
-}
-
+// seems to be the same as OSV2 ???
+bool OregonSensorV3::validate(char * _str, int _len, int _CRC, int _SUM) {
+  int i,j,c,CRC,SUM;
+  CRC =0x43;
+  int CCIT_POLY = 0x07;
+  SUM = 0x00;
+  
+  // swap each 2 digit
+  char __str[100];
+  for (j=0 ; j < _len ; j+=2){
+    __str[j] = _str[j+1];
+    __str[j+1] = _str[j];
+  }
+  __str[_len]='\0'; // recopie de
+  
+  for (j=1; j< _len; j++)
+    {
+      c = getIntFromChar(__str[j]);
+      SUM += c;
+      CRC ^= c;
+      
+      // Because we have to skip the rolling value in the CRC computation
+      if ( j != 6 && j != 7 ) {
+	for(i = 0; i < 4; i++) {
+	  if( (CRC & 0x80) != 0 )
+	    CRC = ( (CRC << 1) ^ CCIT_POLY ) & 0xFF;
+	  else
+	    CRC = (CRC << 1 ) & 0xFF;
+	}
+      }
+    }
 // CRC is 8b but the len is quartet based and we start are digit 1
 if ( ! (_len & 1) ) {
 for(i = 0; i<4; i++) {
@@ -784,7 +880,7 @@ if ( SUM == _SUM /* && CRC == _CRC */ ) return true;
 else {
 
 #ifdef SENSORTRACE
-printf("OSV2 – validate err (%s) SUM : 0x%02X(0x%02X) CRC : 0x%02X(0x%02X)\n",_str,SUM,_SUM,CRC,_CRC);
+printf("OSV3 – validate err (%s) SUM : 0x%02X(0x%02X) CRC : 0x%02X(0x%02X)\n",_str,SUM,_SUM,CRC,_CRC);
 #endif
 }
 return false;

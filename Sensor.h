@@ -70,6 +70,7 @@ class Sensor {
   int getIntFromChar(char c) const ; // transform a Hex value in char into a number
   int getIntFromString(char *) const ; // transform a Hex value in String into a number
   double getDoubleFromString(char *) const ; // transform a BCD string into a double
+  
 
  public:
 
@@ -120,7 +121,19 @@ class OregonSensorV2 : public Sensor {
   bool decode_THN132N(char * pt); // decode sensor informations
   bool decode_THGRN228NX(char * pt); // decode sensor informations
   bool decode_WGR918(char * pt); // decode sensor informations
-  bool decode_THGR810(char* pt); // decode sensor informations
   bool validate(char * _str, int _len, int _CRC, int _SUM); // Verify CRC & CKSUM
 };
+
+class OregonSensorV3 : public Sensor {
+ public :
+  OregonSensorV3(char * _strval);
+  static const char _sensorId[];
+
+ private:
+  bool decode( char * _str ); // wrapper to right decode method
+  bool validate(char * _str, int _len, int _CRC, int _SUM); // Verify CRC & CKSUM
+
+  bool decode_THGR810(char* pt); // decode sensor informations
+};
+
 #endif /* SENSOR_H_ */
