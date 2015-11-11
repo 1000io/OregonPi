@@ -220,7 +220,7 @@ printf("Sensor::getRightSensor – create of (%s)\n",s);
 printf("Sensor::getRightSensor – create OregonSensorV2\n");
 #endif
  return new OregonSensorV2(s);
- } else if ( strncmp(s, OregonSensorV2::_sensorId, strlen(OregonSensorV3::_sensorId)) == 0) {
+ } else if ( strncmp(s, OregonSensorV3::_sensorId, strlen(OregonSensorV3::_sensorId)) == 0) {
 #ifdef SENSORDEBUG
 printf("Sensor::getRightSensor – create OregonSensorV3\n");
 #endif
@@ -743,8 +743,8 @@ bool OregonSensorV3::decode(char * _str) {
 #endif
     
     switch (isensorId) {
-    case 0xA824:
-      _sensorType=0xA824;
+    case 0xF824:
+      _sensorType=0xF824;
       _sensorName = "THGR810";
       return decode_THGR810(pt); break;
     default:
