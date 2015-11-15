@@ -72,4 +72,9 @@ Sensor(char * _strval); // construct and decode value
  - int getSensClass(); // return sensor class
  - int getSensType(); // return sensor type
 
+Thanks to
+---------
+
+@renzo38 & @FunFR
+
 
