@@ -46,6 +46,11 @@ Execute
 
 sudo ./test
 
+Execute & Save Log Archive
+--------------------------
+
+nohup sudo /home/pi/OregonPi/test /home/pi/OregonPi/log_oregon.csv &
+
 Data Support
 ------------
 
