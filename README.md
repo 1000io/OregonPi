@@ -51,6 +51,14 @@ Execute & Save Log Archive
 
 nohup sudo /home/pi/OregonPi/test /home/pi/OregonPi/log_oregon.csv &
 
+Log Example
+-----------
+
+[chanel number],[temp],[hum]
+
+1,temp19.100000,hum69.000000
+2,temp19.500000,hum67.000000
+
 Data Support
 ------------
 
