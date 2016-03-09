@@ -58,6 +58,41 @@ Log Example
 
 1,temp19.100000,hum69.000000
 
+Pimatic Integration
+-------------------
+
+You can use it with pimatic-log-reader as I do :)
+
+https://pimatic.org/plugins/pimatic-log-reader/
+
+pimatic config example:
+
+    {
+      "id": "oregon1",
+      "name": "Bedroom Sensor",    //sensor display name
+      "class": "LogWatcher",
+      "file": "/home/pi/OregonPi/log_oregon.csv",  //log file
+      "attributes": [
+        {
+          "name": "temp",
+          "type": "number",
+          "unit": "°C"
+        },
+        {
+          "name": "hum",
+          "type": "number",
+          "unit": "%"
+        }
+      ],
+      "lines": [
+        {
+          "match": "1,temp(.+),hum(.+)",   // ->1<- Sensor channel number
+          "temp": "$1",
+          "hum": "$2"
+        }
+      ]
+    }
+
 Data Support
 ------------
 
